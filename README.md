@@ -14,3 +14,21 @@ On a clean install:
 8) `systemctl enable pcscd` and `systemctl start pcscd`
 
 
+Once this is done - you should be able to run pcsc_scan and it will halt at 'card removed', which just means there is nothing to read.
+
+```
+root@catbook:/home/cat/CCID# pcsc_scan 
+Using reader plug'n play mechanism
+Scanning present readers...
+0: ACS ACR122U PICC Interface 00 00
+1: Broadcom Corp 5880 [Contacted SmartCard] (0123456789ABCD) 01 00
+ 
+Tue Mar 14 16:38:04 2023
+ Reader 0: ACS ACR122U PICC Interface 00 00
+  Event number: 2
+  Card state: Card removed, 
+ Reader 1: Broadcom Corp 5880 [Contacted SmartCard] (0123456789ABCD) 01 00
+  Event number: 0
+  Card state: Card removed, 
+```
+
