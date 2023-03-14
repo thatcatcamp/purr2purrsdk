@@ -32,3 +32,26 @@ Tue Mar 14 16:38:04 2023
   Card state: Card removed, 
 ```
 
+## using the sdk
+
+The SDK is a single file - checkout the source and directly edit purr.py and it will merge automatically.  ONLY EDIT THE LUSER AREA SECTION!
+
+### premature_ejection
+
+This means the user touched the scanner but pulled away before the transfer was complete (around 1 second).  Depending on camp themes, you can 
+probably do any number of fun things with this.  We expect to use a buzzer sound because we are adults.  :)
+
+### slinking_away
+
+Means the user has disconnected the badge/card.  This is a noop for most art - but you can use this to 'turn off' when people leave.
+
+### anonymous_hooman
+
+A human has arrived only identified by a 32 bit number.  There is a nearly zero chance of an ID collision, but it is not impossible.  This is the ID used to upload data to the Purr2Purr SkyNet.
+
+### frob
+ 
+Frob is a timeout based on FROB_DELAY.  This is a handler to let you blink lights, hoot, or whatever.  Nothing is going on so attract more hoomans.
+
+
+
