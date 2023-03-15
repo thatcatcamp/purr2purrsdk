@@ -1,6 +1,30 @@
 # purr2purrsdk
 Builder SDK for Purr2Purr
 
+## concept
+
+Purr2Purr uses NFC tokens to provide interactivity to camps and artists.
+There is no requirement to code to use Purr2Purr - there is an Android app
+that will interact with tokens.  Optionally - camps may upload data or 
+digital items, but it requires preregistration and a certificate exchange.  Once home - Burners can 
+download items and see their 'history' on the Playa for a limited time.
+
+See the documentation for uploading for more details.
+
+Tokens are per year and are distributed at participating camps, but contain
+no personal information.  Camps _should_ write the following records - each record
+on an NFC device is limited to 16 bytes.
+
+- 1 - Playa Name or the string 'hooman', SDK defaults to 'hooman'
+- 2 - Year issued, i.e. - the string '2023', SDK defaults to '2023'
+- 3 - Issuing camp, artwork or event, SDK defaults to 'rogue'
+
+The key used to identify Burners is the serial number of the NFC 
+device - which has the possibility (albeit small) of collisions if 
+multiple vendors are used.
+
+## setup
+
 Affordable NFC readers seem to have many problems - install our version of CCID rather than the one in your distribution.
 On a clean install:
 
@@ -34,7 +58,11 @@ Tue Mar 14 16:38:04 2023
 
 ## using the sdk
 
-The SDK is a single file - checkout the source and directly edit purr.py and it will merge automatically.  ONLY EDIT THE LUSER AREA SECTION!
+The main SDK is a single file - checkout the source and directly edit purr.py and it will merge automatically.  ONLY EDIT THE LUSER AREA SECTION!
+There is an additional library file (`purrutils.py`) included with utility functions you 
+don't need unless you want to connect to the backend services.
+
+As always, if this is too hard - you can use the app on any Android device too.
 
 ### premature_ejection
 
@@ -55,3 +83,7 @@ Frob is a timeout based on FROB_DELAY.  This is a handler to let you blink light
 
 
 
+## legal crap
+
+SDK components are GPLv3 licensed and cannot be used
+commercially.  All contents are Copyright (c) 2023 CAT Camp.

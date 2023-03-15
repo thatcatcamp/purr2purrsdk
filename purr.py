@@ -16,6 +16,7 @@ from smartcard.CardMonitoring import CardMonitor, CardObserver
 from smartcard.util import toHexString
 from smartcard.Exceptions import CardConnectionException
 getsn = [0xFF, 0xCA, 0x00, 0x00, 0x04]
+get_record_0 = [0xFF, 0Xb2, 0x01, 0xfd]
 
 """
 luser area!
@@ -27,6 +28,7 @@ This is the area you add handlers for your project
 # resets.  we usually use this for attract mode - playing a tune
 # or flashing lights to sucker people over
 FROB_DELAY = 120
+
 
 def premature_ejection():
     """
@@ -41,9 +43,9 @@ def slinking_away(session_tag: str):
     """
     card removed - possibly add a power down sound here?
     session tag is the ATR of the card, which sort of useful
-    but not really - read more at https://en.wikipedia.org/wiki/Answer_to_reset   
-    
-    """    
+    but not really - read more at https://en.wikipedia.org/wiki/Answer_to_reset
+
+    """
     print("not going to stay the night?  ", session_tag)
 
 
@@ -66,24 +68,26 @@ def frob():
     """
     print("Look at me!")
 
+
 class PrintObserver(CardObserver):
     """
         this is the handler that sees the cards coming and going
         from the scanner
     """
+
     def update(self, observable, actions):
-        (addedcards, removedcards) = actions
-        for card in addedcards:
+        (added_cards, removed_cards) = actions
+        for card in added_cards:
             print("Inserted ATR: ", toHexString(card.atr, PACK))
             card.connection = card.createConnection()
             try:
                 card.connection.connect()
                 response, sw1, sw2 = card.connection.transmit(getsn)
-                nfc_id = "{}".format(toHexString(response, format=PACK)).replace(" ", "").lower()            
+                nfc_id = "{}".format(toHexString(response, format=PACK)).replace(" ", "").lower()
                 anonymous_hooman(nfc_id)
             except CardConnectionException:
                 premature_ejection()
-        for card in removedcards:
+        for card in removed_cards:
             slinking_away(toHexString(card.atr, format=PACK))
 
 
@@ -92,10 +96,10 @@ print("Source is GPLv3 Licensed - YOU MAY NOT USE FOR COMMERCE")
 print("Booting - looking for scanners....")
 scanners = smartcard.System.readers()
 if len(scanners) == 0:
-	logging.error("nothing found - did you install the hacked library and deps?")
+    logging.error("nothing found - did you install the hacked library and deps?")
 print("Available devices:")
 for d in scanners:
-	print(f"\t{d}")
+    print(f"\t{d}")
 while True:
     print(smartcard.System.readers())
     cardmonitor = CardMonitor()
@@ -108,5 +112,3 @@ while True:
 # don't forget to remove observer, or the
 # monitor will poll forever...
 cardmonitor.deleteObserver(cardobserver)
-
-
