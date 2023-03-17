@@ -16,8 +16,21 @@ from smartcard.CardMonitoring import CardMonitor, CardObserver
 from smartcard.util import toHexString
 from smartcard.Exceptions import CardConnectionException
 getsn = [0xFF, 0xCA, 0x00, 0x00, 0x04]
-get_record_0 = [0xFF, 0Xb2, 0x01, 0xfd]
-
+get_record_0 = [0xFF, 0Xb2, 0x04, 0x00, 0x00, 0xff]
+firmware_version = [0xFF, 0xB0, 0x00, -1, -1, 0, 0xff]
+read_block = [0xFF, 0xB0, 0x00, 0, 0xf]
+update_block = [0xFF, 0xD6, 0x00, -1, 1, 0xf]
+rr = [0x0, 0xb2, 0, 0x4, 0xf, ]
+"""
+CLA As specified in clause 10.1.1
+INS As specified in clause 10.1.2
+P1 Record number
+P2 Mode, see table 11.11
+Lc Not present
+Data Not present
+Le Number of bytes to be read
+"""
+#return self.command("read_binary_blocks", [block_number, number_of_byte_to_read])
 """
 luser area!
 
@@ -84,6 +97,14 @@ class PrintObserver(CardObserver):
                 card.connection.connect()
                 response, sw1, sw2 = card.connection.transmit(getsn)
                 nfc_id = "{}".format(toHexString(response, format=PACK)).replace(" ", "").lower()
+                print("nfc_id ", nfc_id)
+                print(read_block)
+                response, sw1, sw2 = card.connection.transmit(rr)
+                print("result: ", sw1, sw2)
+                hexFirmware = toHexString(response, format=PACK).replace(" ", "").lower()
+                print("hexfw ", hexFirmware)
+                fw_version = bytes.fromhex(hexFirmware).decode('utf-8')
+                print("fw: ", fw_version)
                 anonymous_hooman(nfc_id)
             except CardConnectionException:
                 premature_ejection()
@@ -107,6 +128,7 @@ while True:
     cardmonitor.addObserver(cardobserver)
     print("Waiting...")
     sleep(FROB_DELAY)
+    cardmonitor.deleteObserver()
     frob()
 
 # don't forget to remove observer, or the
