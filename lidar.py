@@ -16,17 +16,27 @@ https://s3-us-west-2.amazonaws.com/files.seeedstudio.com/products/101990656/res/
 
 
 """
-import serial
 import time
 
+import requests
+import serial
+from loguru import logger
+
 HOOMAN_SAMPLE_SECONDS = 10
+
+
 def hooman_detected():
     """
     not surprisingly - fires when a hooman is seem (i.e. - something changed in the LIDAR
     range
     :return:
     """
-    print('hooman seen!')
+    # replace this with some custom stuff if you don't want to use the IPC proxy
+    hooman_packet = {"eventtype": "hooman", "hooman_id": "", "hooman_name": "", "hooman_likes": ""}
+    logger.info('hooman seen!')
+    results = requests.post("http://localhost:8080/push", json=hooman_packet)
+    print(results.status_code)
+
 
 # DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING  :)
 # this might need to change for you - by default though mostly
@@ -81,9 +91,10 @@ def sample_lidar():
                 return distance / 100.0, strength, temperature
 
 
-print("Purr2PurrSDK Copyright (c) 2023 CAT Camp")
-print("Source is GPLv3 Licensed - YOU MAY NOT USE FOR COMMERCE")
-print("Booting - looking for scanners....")
+logger.info("Purr2PurrSDK Copyright (c) 2023 CAT Camp")
+logger.info("Source is GPLv3 Licensed - YOU MAY NOT USE FOR COMMERCE")
+logger.info("Booting - looking for scanners....")
+
 if ser.isOpen() == False:
     ser.open()  # open serial port if not open
 try:
@@ -100,16 +111,22 @@ try:
         if time.time() - last_meaningful_change < HOOMAN_SAMPLE_SECONDS:
             time.sleep(time.time() - last_meaningful_change)
             continue
-        last_meaningful_change = time.time() #  unix time
+        last_meaningful_change = time.time()  # unix time
         if temperature > 60.0:
             print("DANGER - sensor is overheating...")
+        # remove minor changes
+        flat_last = int(last_distance * 10)
+        flat_distance = int(distance * 10)
+        if flat_distance != flat_last:
+            logger.info(f"change {flat_last} != {flat_distance}")
+            hooman_detected()
         last_strength = strength
         last_distance = distance
-        print('Distance: {0:2.2f} m, Strength: {1:2.0f} / 65535 (16-bit), Chip Temperature: {2:2.1f} C'. \
-              format(distance, strength, temperature))
-        hooman_detected()
+        logger.info('Distance: {0:2.2f} m, Strength: {1:2.0f} / 65535 (16-bit), Chip Temperature: {2:2.1f} C'. \
+                    format(distance, strength, temperature))
+
 except Exception as e:
-    print("Something odd happened")
-    print(e)
+    logger.warning("Something odd happened")
+    logger.warning(e)
 finally:
     ser.close()  # close serial port

@@ -3,13 +3,15 @@ Builder SDK for Purr2Purr
 
 ## concept
 
-Purr2Purr uses NFC tokens to provide interactivity to camps and artists.
+Purr2Purr uses NFC tokens and small LIDAR sensors to provide interactivity to camps and artists.
 There is no requirement to code to use Purr2Purr - there is an Android app
 that will interact with tokens.  Optionally - camps may upload data or 
 digital items, but it requires preregistration and a certificate exchange.  Once home - Burners can 
 download items and see their 'history' on the Playa for a limited time.
 
 See the documentation for uploading for more details.
+
+The LIDAR interface is also documented in a separate markdown.
 
 Tokens are per year and are distributed at participating camps, but contain
 no personal information.  Camps _should_ write the following records - each record

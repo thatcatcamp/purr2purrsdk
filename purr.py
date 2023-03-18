@@ -8,6 +8,9 @@ this file is provided under the gplv3 license -see the full legal text in the pr
 """
 import logging
 from time import sleep
+
+import requests
+from loguru import logger
 from smartcard.CardType import AnyCardType
 from smartcard.CardRequest import CardRequest
 from smartcard.util import toHexString, PACK
@@ -72,6 +75,10 @@ def anonymous_hooman(hooman_id: str):
     the hooman_id and assume it is unique
     """
     print("you have been terminated, hooman ", hooman_id)
+    hooman_packet = {"eventtype": "tap", "hooman_id": hooman_id, "hooman_name": "", "hooman_likes": ""}
+    logger.info('hooman seen!')
+    results = requests.post("http://localhost:8080/push", json=hooman_packet)
+    print(results.status_code)
 
 
 def frob():
@@ -99,12 +106,12 @@ class PrintObserver(CardObserver):
                 nfc_id = "{}".format(toHexString(response, format=PACK)).replace(" ", "").lower()
                 print("nfc_id ", nfc_id)
                 print(read_block)
-                response, sw1, sw2 = card.connection.transmit(rr)
-                print("result: ", sw1, sw2)
-                hexFirmware = toHexString(response, format=PACK).replace(" ", "").lower()
-                print("hexfw ", hexFirmware)
-                fw_version = bytes.fromhex(hexFirmware).decode('utf-8')
-                print("fw: ", fw_version)
+#                response, sw1, sw2 = card.connection.transmit(rr)
+#                print("result: ", sw1, sw2)
+#                hexFirmware = toHexString(response, format=PACK).replace(" ", "").lower()
+#                print("hexfw ", hexFirmware)
+#                fw_version = bytes.fromhex(hexFirmware).decode('utf-8')
+#                print("fw: ", fw_version)
                 anonymous_hooman(nfc_id)
             except CardConnectionException:
                 premature_ejection()
