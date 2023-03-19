@@ -22,19 +22,35 @@ import pathlib
 import time
 import cherrypy
 import queue
+import soundfile
 
 # change to 0.0.0.0 if need to jump boxes - this is accessible only here
-TALK_ON="127.0.0.1"
+TALK_ON = "127.0.0.1"
 # change to something meaningful if have multiple
 PING_RESPONSE = "ipcproxy 1.0"
 Q = queue.Queue()
 CACHE = "./cache/"
+# global state for eye candy
+LIDAR_TEMPERATURE = 0.0
+LIDAR_STRENGTH = 0
+LIDAR_DISTANCE = 0.0
+
 
 class IPCProxy(object):
 
     @cherrypy.expose
     def index(self):
         return PING_RESPONSE
+
+    @cherrypy.expose
+    def lidar(self):
+        global LIDAR_DISTANCE, LIDAR_TEMPERATURE, LIDAR_STRENGTH
+        body = cherrypy.request.body.read().decode('utf-8')
+        split = str(body).split("|")
+        LIDAR_DISTANCE = float(split[0])
+        LIDAR_STRENGTH = int(split[1])
+        LIDAR_TEMPERATURE = float(split[2])
+
 
     @cherrypy.expose
     def push(self):
@@ -44,6 +60,25 @@ class IPCProxy(object):
         # no validation
         Q.put(body)
         print("pushed")
+
+    @cherrypy.expose
+    def cache(self):
+        """
+        since slow procs are the norm out there - precache common phrases
+        :return:
+        """
+        body = cherrypy.request.body.read().decode('utf-8').replace("'", "").replace("\"", "")
+        try:
+            os.mkdir(CACHE)
+        except:
+            pass
+        key = hashlib.sha1(body.encode('utf-8')).hexdigest() + ".wav"
+        if not pathlib.Path(os.path.join(CACHE, key)).is_file():
+            print("creating")
+            exec = f"larynx --voice harvard '{body}' > {pathlib.Path(os.path.join(CACHE, key))}"
+            os.system(exec)
+        f = soundfile.SoundFile(f'{pathlib.Path(os.path.join(CACHE, key))}')
+        return f.frames / f.samplerate
 
     @cherrypy.expose
     def say(self):
@@ -73,6 +108,9 @@ class IPCProxy(object):
     @cherrypy.expose
     def events(self):
         # throttle for small cpus
+        cherrypy.response.headers['X-Distance'] = LIDAR_DISTANCE
+        cherrypy.response.headers['X-Strength'] = LIDAR_STRENGTH
+        cherrypy.response.headers['X-Temperature'] = LIDAR_TEMPERATURE
         if Q.empty():
             time.sleep(2)
             return ""

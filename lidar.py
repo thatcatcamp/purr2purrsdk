@@ -21,13 +21,13 @@ import time
 import requests
 import serial
 from loguru import logger
-
+DATA_HANDLE = None
 HOOMAN_SAMPLE_SECONDS = 10
 
 
 def hooman_detected():
     """
-    not surprisingly - fires when a hooman is seem (i.e. - something changed in the LIDAR
+    not surprisingly - fires when a hooman is seen (i.e. - something changed in the LIDAR
     range
     :return:
     """
@@ -37,6 +37,18 @@ def hooman_detected():
     results = requests.post("http://localhost:8080/push", json=hooman_packet)
     print(results.status_code)
 
+
+def push_sensor_data(distance: float, strength: int, temperature:float):
+    """
+    not surprisingly - fires when a hooman is seem (i.e. - something changed in the LIDAR
+    range
+    :return:
+    """
+    # replace this with some custom stuff if you don't want to use the IPC proxy
+    hooman_packet = f"{distance}|{strength}|{temperature}"
+    logger.info('hooman seen!')
+    results = requests.post("http://localhost:8080/lidar", data=hooman_packet)
+    print(results.status_code)
 
 # DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING  :)
 # this might need to change for you - by default though mostly
@@ -91,13 +103,16 @@ def sample_lidar():
                 return distance / 100.0, strength, temperature
 
 
+def log_for_upload( event_type: str, hooman_id: str, install_id: str)
+
 logger.info("Purr2PurrSDK Copyright (c) 2023 CAT Camp")
 logger.info("Source is GPLv3 Licensed - YOU MAY NOT USE FOR COMMERCE")
 logger.info("Booting - looking for scanners....")
-
-if ser.isOpen() == False:
+DATA_HANDLE = open("upload-me.dat", "a+t")
+if not ser.isOpen():
     ser.open()  # open serial port if not open
 try:
+
     get_version()
     last_meaningful_change = 0
     last_distance = 0
@@ -115,6 +130,7 @@ try:
         if temperature > 60.0:
             print("DANGER - sensor is overheating...")
         # remove minor changes
+        push_sensor_data(distance, strength, temperature)
         flat_last = int(last_distance * 10)
         flat_distance = int(distance * 10)
         if flat_distance != flat_last:
@@ -130,3 +146,4 @@ except Exception as e:
     logger.warning(e)
 finally:
     ser.close()  # close serial port
+    DATA_HANDLE.close()

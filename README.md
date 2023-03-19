@@ -60,6 +60,8 @@ Tue Mar 14 16:38:04 2023
 
 ## using the sdk
 
+Do you want to upload data?  Then you need to check the readme under `network`.
+
 The main SDK is a single file - checkout the source and directly edit purr.py and it will merge automatically.  ONLY EDIT THE LUSER AREA SECTION!
 There is an additional library file (`purrutils.py`) included with utility functions you 
 don't need unless you want to connect to the backend services.

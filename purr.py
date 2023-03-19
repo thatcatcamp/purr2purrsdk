@@ -128,16 +128,18 @@ if len(scanners) == 0:
 print("Available devices:")
 for d in scanners:
     print(f"\t{d}")
-while True:
-    print(smartcard.System.readers())
-    cardmonitor = CardMonitor()
-    cardobserver = PrintObserver()
-    cardmonitor.addObserver(cardobserver)
-    print("Waiting...")
-    sleep(FROB_DELAY)
-    cardmonitor.deleteObserver()
-    frob()
-
+print(smartcard.System.readers())
+cardmonitor = CardMonitor()
+cardobserver = PrintObserver()
+cardmonitor.addObserver(cardobserver)
+try:
+    while True:
+        print("Waiting...")
+        sleep(FROB_DELAY)
+        frob()
+except:
+    pass
 # don't forget to remove observer, or the
 # monitor will poll forever...
-cardmonitor.deleteObserver(cardobserver)
+finally:
+    cardmonitor.deleteObserver(cardobserver)

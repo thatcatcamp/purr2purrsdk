@@ -68,3 +68,6 @@ typish==1.9.3
 Werkzeug==2.2.3
 wsproto==1.2.0
 zc.lockfile==3.0.post1
+
+PyJWT~=2.6.0
+requests~=2.28.2
