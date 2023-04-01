@@ -22,7 +22,9 @@ import pathlib
 import time
 import cherrypy
 import queue
-import soundfile
+import librosa
+from multiprocessing import Process, Lock
+mutex = Lock()
 
 # change to 0.0.0.0 if need to jump boxes - this is accessible only here
 TALK_ON = "127.0.0.1"
@@ -51,7 +53,6 @@ class IPCProxy(object):
         LIDAR_STRENGTH = int(split[1])
         LIDAR_TEMPERATURE = float(split[2])
 
-
     @cherrypy.expose
     def push(self):
         print('push')
@@ -73,37 +74,48 @@ class IPCProxy(object):
         except:
             pass
         key = hashlib.sha1(body.encode('utf-8')).hexdigest() + ".wav"
-        if not pathlib.Path(os.path.join(CACHE, key)).is_file():
-            print("creating")
-            exec = f"larynx --voice harvard '{body}' > {pathlib.Path(os.path.join(CACHE, key))}"
+        file_name = os.path.join(CACHE, key)
+        if not pathlib.Path(file_name).is_file():
+            print(f"creating [{body}]")
+            exec = f"larynx --voice harvard '{body}' > {file_name}"
             os.system(exec)
-        f = soundfile.SoundFile(f'{pathlib.Path(os.path.join(CACHE, key))}')
-        return f.frames / f.samplerate
+        print(f"Sizing {file_name}")
+        try:
+            if pathlib.Path(file_name).is_file():
+                time_play = librosa.get_duration(filename=file_name)
+                return f"{time_play}"
+
+        except SystemError:
+            pass
+        print("File did not render?")
+        return "2.0"
+
 
     @cherrypy.expose
     def say(self):
-        body = cherrypy.request.body.read().decode('utf-8').replace("'", "").replace("\"", "")
-        print("say: ", body)
-        """
-        all the default voices are horrendous - the requirements should install this, otherwise run:
+        with mutex:  # only one voice at a time
+            body = cherrypy.request.body.read().decode('utf-8').replace("'", "").replace("\"", "")
+            print("say: ", body)
+            """
+            all the default voices are horrendous - the requirements should install this, otherwise run:
 
-        pip3 install -f 'https://synesthesiam.github.io/prebuilt-apps/' -f 'https://download.pytorch.org/whl/cpu/torch_stable.html' larynx
+            pip3 install -f 'https://synesthesiam.github.io/prebuilt-apps/' -f 'https://download.pytorch.org/whl/cpu/torch_stable.html' larynx
 
-        alternatively - festival is tolerable - but this caching method works better on slow hw
-        """
-        # exec = f"festival -b '(voice_cmu_us_slt_arctic_hts)' '(SayText \"{body}\")'"
-        try:
-            os.mkdir(CACHE)
-        except:
-            pass
-        key = hashlib.sha1(body.encode('utf-8')).hexdigest() + ".wav"
-        if not pathlib.Path(os.path.join(CACHE, key)).is_file():
-            print("creating")
-            exec = f"larynx --voice harvard '{body}' > {pathlib.Path(os.path.join(CACHE, key))}"
+            alternatively - festival is tolerable - but this caching method works better on slow hw
+            """
+            # exec = f"festival -b '(voice_cmu_us_slt_arctic_hts)' '(SayText \"{body}\")'"
+            try:
+                os.mkdir(CACHE)
+            except:
+                pass
+            key = hashlib.sha1(body.encode('utf-8')).hexdigest() + ".wav"
+            if not pathlib.Path(os.path.join(CACHE, key)).is_file():
+                print("creating")
+                exec = f"larynx --voice harvard '{body}' > {pathlib.Path(os.path.join(CACHE, key))}"
+                os.system(exec)
+            print("playing")
+            exec = f"aplay < {pathlib.Path(os.path.join(CACHE, key))}"
             os.system(exec)
-        print("playing")
-        exec = f"aplay < {pathlib.Path(os.path.join(CACHE, key))}"
-        os.system(exec)
 
     @cherrypy.expose
     def events(self):

@@ -47,8 +47,11 @@ def push_sensor_data(distance: float, strength: int, temperature:float):
     # replace this with some custom stuff if you don't want to use the IPC proxy
     hooman_packet = f"{distance}|{strength}|{temperature}"
     logger.info('hooman seen!')
-    results = requests.post("http://localhost:8080/lidar", data=hooman_packet)
-    print(results.status_code)
+    try:
+        results = requests.post("http://localhost:8080/lidar", data=hooman_packet)
+        print(results.status_code)
+    except:
+        print("recovering from exception posting to ipcproxy")
 
 # DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING  :)
 # this might need to change for you - by default though mostly
@@ -103,7 +106,7 @@ def sample_lidar():
                 return distance / 100.0, strength, temperature
 
 
-def log_for_upload( event_type: str, hooman_id: str, install_id: str)
+#def log_for_upload( event_type: str, hooman_id: str, install_id: str)
 
 logger.info("Purr2PurrSDK Copyright (c) 2023 CAT Camp")
 logger.info("Source is GPLv3 Licensed - YOU MAY NOT USE FOR COMMERCE")

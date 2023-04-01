@@ -1,4 +1,11 @@
 """
+use this file for the odd-ball, but cheap and cheerful ACR-122* reader
+so far - we haven't see this reader response correctly to the NFC record commands,
+but it's also very common and $5 USD.
+
+you will _ONLY_ get a hooman id from this device, but that's fine
+
+
 copyright (c) 2023 CAT Camp
 
 copyright is just included for takedowns if this is used for commercial projects
@@ -8,12 +15,11 @@ this file is provided under the gplv3 license -see the full legal text in the pr
 """
 import logging
 from time import sleep
-
+from smartcard.System import *
+from smartcard.util import *
 import requests
 from loguru import logger
-from smartcard.CardType import AnyCardType
-from smartcard.CardRequest import CardRequest
-from smartcard.util import toHexString, PACK
+from smartcard.util import PACK
 import smartcard.System
 from smartcard.CardMonitoring import CardMonitor, CardObserver
 from smartcard.util import toHexString
@@ -75,7 +81,7 @@ def anonymous_hooman(hooman_id: str):
     the hooman_id and assume it is unique
     """
     print("you have been terminated, hooman ", hooman_id)
-    hooman_packet = {"eventtype": "tap", "hooman_id": hooman_id, "hooman_name": "", "hooman_likes": ""}
+    hooman_packet = {"eventtype": "tap", "hooman_id": hooman_id, "xnm": 'hooman', "xyr": '2023', "xis": 'losers'}
     logger.info('hooman seen!')
     results = requests.post("http://localhost:8080/push", json=hooman_packet)
     print(results.status_code)
@@ -104,16 +110,11 @@ class PrintObserver(CardObserver):
                 card.connection.connect()
                 response, sw1, sw2 = card.connection.transmit(getsn)
                 nfc_id = "{}".format(toHexString(response, format=PACK)).replace(" ", "").lower()
-                print("nfc_id ", nfc_id)
+                print("xnfc_id ", nfc_id)
                 print(read_block)
-#                response, sw1, sw2 = card.connection.transmit(rr)
-#                print("result: ", sw1, sw2)
-#                hexFirmware = toHexString(response, format=PACK).replace(" ", "").lower()
-#                print("hexfw ", hexFirmware)
-#                fw_version = bytes.fromhex(hexFirmware).decode('utf-8')
-#                print("fw: ", fw_version)
                 anonymous_hooman(nfc_id)
             except CardConnectionException:
+                print("exception?")
                 premature_ejection()
         for card in removed_cards:
             slinking_away(toHexString(card.atr, format=PACK))
