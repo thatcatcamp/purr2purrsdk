@@ -4,6 +4,8 @@ Builder SDK for Purr2Purr
 
 ## concept
 
+![img.png](img.png)
+
 Purr2Purr uses NFC tokens and small LIDAR sensors to provide interactivity to camps and artists.
 There is no requirement to code to use Purr2Purr - there is an Android app
 that will interact with tokens.  Optionally - camps may upload data or 
@@ -21,12 +23,19 @@ Tokens are per year and are distributed at participating camps, but contain
 no personal information.  Camps _should_ write the following records - each record consists of a 
 tag, a colon (:) and the value.
 
-| tag | meaning                   | SDK default |                                        
-|-----|---------------------------|-------------|
-| xnm | Playa Name                | hooman      |
-| xyr | Year issued (i.e. - 2023) | 2023        |
-| xis | Issuing Camp              | losers      |
+| tag | meaning                     | SDK default |                                        
+|-----|-----------------------------|-------------|
+| xnm | Playa Name                  | hooman      |
+| xyr | Year issued (i.e. - 2023)   | 2023        |
+| xis | Issuing Camp                | losers      |
+| xar | Artwork or Destination Node | losers      |
 
+In addition - 'dumb tags' for scavenger hunts and other events can contain these fields:
+
+| tag | meaning                     | SDK default        |                                        
+|-----|-----------------------------|--------------------|
+| xar | Artwork or Destination Node | Sword of Virginity |
+| xac | Achievement Title           | Clearance Priced! |
 
 The key used to identify Burners is the serial number of the NFC 
 device - which has the possibility (albeit small) of collisions if 
